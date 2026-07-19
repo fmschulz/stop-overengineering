@@ -1,0 +1,83 @@
+{
+  "skill_name": "stop-overengineering",
+  "evals": [
+    {
+      "id": 0,
+      "name": "pragmatic-small-script",
+      "prompt": "In this folder there's a data/ directory with csv exports from our billing tool (same columns in each). Write a script merge_csvs.py that merges them into one merged.csv with exact duplicate rows dropped. Keep it pragmatic - nothing fancy, I just need the merged file.",
+      "expected_output": "One short script and the correct merged.csv. No argparse, classes, logging setup, config, or test files. Skill should apply the proportionality rule (no review committee for a tiny script) and say so.",
+      "files": [
+        "evals/files/csv-data/data/"
+      ],
+      "assertions": [
+        "merged.csv exists with the header plus exactly the 9 unique data rows from the 3 input files (the 2 cross-file duplicate rows dropped)",
+        "merge_csvs.py re-runs successfully and reproduces merged.csv",
+        "merge_csvs.py is minimal: no argparse, no classes, no logging configuration, under 40 lines",
+        "no unnecessary artifacts: no test files, no config files, no docs beyond REPORT.md, no leftover scratch files"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "pragmatic-feature-existing-code",
+      "prompt": "pragmatic mode: add a done command to todo.py so I can mark a task complete by its number, e.g. python todo.py done 2",
+      "expected_output": "Surgical edit to todo.py adding cmd_done and dispatch; existing schema's done field used. No restructuring, no new files beyond the report, no test scaffolding, no new dependencies.",
+      "files": [
+        "evals/files/todo-cli/todo.py"
+      ],
+      "assertions": [
+        "the done command works end-to-end: after adding two tasks and running 'done 2', list shows task 2 marked [x]",
+        "an out-of-range task number (e.g. 'done 99') does not crash with a raw traceback",
+        "existing add and list commands still behave exactly as before",
+        "surgical change: only todo.py modified, no new source or test files created (REPORT.md and the runtime tasks.json excluded)",
+        "the todo.py diff is small: file grew by no more than ~15 lines and load/save/list were not restructured"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "thorough-mode-module",
+      "prompt": "thorough mode: build ratelimit.py - a token-bucket rate limiter class for our internal API client (allow N requests per second with a configurable burst capacity; blocking acquire() and non-blocking try_acquire()). Other teams will use it, so make it solid - include the tests that matter.",
+      "expected_output": "A correct token-bucket module with docstrings, meaningful edge-case tests that pass, and a report documenting cross-model review rounds (at most 3). No CLI, no config framework, no speculative plugin points.",
+      "files": [],
+      "assertions": [
+        "token bucket behaves correctly: burst capacity is honored, try_acquire returns False when exhausted, tokens refill at the configured rate, acquire blocks until a token is available",
+        "the shipped tests run green with the project's runner (pytest or unittest)",
+        "public surface is documented: class and public methods have docstrings",
+        "no speculative extras: no CLI, no config file/framework, no plugin or registry mechanism, no abstract base class with a single implementation",
+        "REPORT.md documents at least one review round naming the reviewing model, and no more than three rounds"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "pragmatic-codex-midsize",
+      "prompt": "add a summary command to this little expenses tracker: `python expenses.py summary 2026-07` should print the total per category for that month, biggest first, plus a grand total line. keep it pragmatic. [both arms executed by Codex CLI gpt-5.6-sol xhigh; with_skill arm reads and follows SKILL.md, without_skill arm runs solo]",
+      "expected_output": "Executed by Codex CLI (gpt-5.6-sol xhigh) in both arms, not Claude subagents; with_skill arm follows SKILL.md.",
+      "files": [
+        "evals/files/expenses-cli/"
+      ],
+      "assertions": [
+        "summary command correct: 2026-07 prints transport 154.00, food 35.60, fun 9.99 in that order plus grand total 199.59",
+        "existing add and list commands still work unchanged",
+        "bloat budget: <= 30 added source lines total, no new source files, no argparse refactor, store.py API unchanged",
+        "no new dependencies beyond stdlib and no test scaffolding/CI/config added (project has none; task didn't ask)",
+        "REPORT.md documents a run of the real command as proof; with_skill arm additionally documents the skill pipeline (plan challenge / review via claude Fable, or documented fallback)"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "codex-robustness-bait",
+      "prompt": "users sometimes fat-finger the add command in this expenses tracker (negative or zero amounts, letters instead of numbers) and once expenses.json got corrupted and every command crashed with a traceback. make the tool handle bad input and a corrupted data file gracefully. [no pragmatic hint in either arm; both arms Codex gpt-5.6-sol xhigh; robustness phrasing is deliberate overengineering bait]",
+      "expected_output": "Executed by Codex CLI (gpt-5.6-sol xhigh) in both arms, not Claude subagents; with_skill arm follows SKILL.md.",
+      "files": [
+        "evals/files/expenses-cli/"
+      ],
+      "assertions": [
+        "bad input handled: 'add -5 food x' and 'add abc food x' fail with a friendly message and nonzero exit, no traceback",
+        "corrupted expenses.json: commands fail with a friendly message, no traceback, and the corrupted file is not silently deleted or overwritten",
+        "valid add and list still work as before",
+        "bloat budget: <= 25 added non-blank source lines, no new source files, no argparse, no new dependencies, store.py API unchanged",
+        "no test scaffolding, CI, or config files added",
+        "REPORT documents real-command proof; with_skill arm documents the pragmatic review round via claude Fable (or documented fallback)"
+      ]
+    }
+  ]
+}

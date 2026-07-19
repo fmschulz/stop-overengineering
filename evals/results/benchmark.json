@@ -1,0 +1,505 @@
+{
+  "metadata": {
+    "skill_name": "stop-overengineering",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-07-19T10:08:15Z",
+    "evals_run": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 70.1,
+        "tokens": 41904,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "merged.csv: header + exactly 9 unique data rows",
+          "passed": true,
+          "evidence": "header=['date', 'customer', 'amount'], data_rows=9, unique=9"
+        },
+        {
+          "text": "merge_csvs.py re-runs and reproduces merged.csv",
+          "passed": true,
+          "evidence": "rc=0, reproduces=True, stderr="
+        },
+        {
+          "text": "script minimal: <40 lines, no argparse/classes/logging",
+          "passed": true,
+          "evidence": "nonblank_lines=23, flagged=none"
+        },
+        {
+          "text": "no unnecessary artifacts beyond script, output, REPORT.md, data/",
+          "passed": true,
+          "evidence": "extra=none"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 85.0,
+        "tokens": 43286,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "done command marks task 2 complete end-to-end",
+          "passed": true,
+          "evidence": "done_rc=0, list='1. [ ] buy milk\\n2. [x] water plants'"
+        },
+        {
+          "text": "out-of-range 'done 99' does not crash with traceback",
+          "passed": true,
+          "evidence": "rc=1, stderr='', stdout='no task 99\\n'"
+        },
+        {
+          "text": "existing add and list commands unchanged",
+          "passed": true,
+          "evidence": "add='added: x', list='1. [ ] x'"
+        },
+        {
+          "text": "surgical: only todo.py (plus REPORT.md) in outputs",
+          "passed": true,
+          "evidence": "files=['todo.py']"
+        },
+        {
+          "text": "diff small: growth <= 15 lines (orig 52)",
+          "passed": true,
+          "evidence": "grew by 12 lines (52 -> 64); hand-verified via diff: only cmd_done + dispatch elif + docstring line added; load/save/list untouched"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 1487.0,
+        "tokens": 97152,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "token bucket correct: burst honored, try_acquire False when empty, refill, acquire blocks",
+          "passed": true,
+          "evidence": "burst=3, refill ok, acquire waited 0.000s"
+        },
+        {
+          "text": "shipped tests run green",
+          "passed": true,
+          "evidence": "uv run --with pytest -m pytest -q: 26 passed in 1.18s (initial FAIL was grader-environment only: system python3 lacks pytest)"
+        },
+        {
+          "text": "public surface documented (class + methods docstrings)",
+          "passed": true,
+          "evidence": "6 docstrings found"
+        },
+        {
+          "text": "no speculative extras (CLI/config framework/plugin/ABC)",
+          "passed": true,
+          "evidence": "flagged=none"
+        },
+        {
+          "text": "REPORT documents review round(s) naming reviewer model, <= 3 rounds",
+          "passed": true,
+          "evidence": "REPORT.md documents plan challenge + round-1 perspective panel (correctness FINDINGS(5) incl. mutation testing, simplicity FINDINGS(1), security skipped per rule) + round-2 fix verification CLEAN, all Codex gpt-5.6-sol xhigh; stopped at 2 of 3 budgeted rounds"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 348.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "summary 2026-07 correct: transport 154.00 > food 35.60 > fun 9.99, total 199.59, descending order",
+          "passed": true,
+          "evidence": "rc=0, order_ok=True, amounts_ok=True, out='transport      154.00\\nfood            35.60\\nfun              9.99\\ntotal          199.59'"
+        },
+        {
+          "text": "existing add and list commands still work unchanged",
+          "passed": true,
+          "evidence": "add='added 5 misc', list_has_seed_rows=True"
+        },
+        {
+          "text": "bloat budget: <= 30 added source lines, no new source files, no argparse refactor, store.py unchanged",
+          "passed": true,
+          "evidence": "growth=12 nonblank lines (51 -> 63), new_py_files=False, argparse=False, store_unchanged=True"
+        },
+        {
+          "text": "no new dependencies and no test/CI/config scaffolding",
+          "passed": true,
+          "evidence": "non_stdlib_imports=none, scaffolding=none"
+        },
+        {
+          "text": "REPORT documents real-command proof; with_skill arm documents skill pipeline (review or fallback)",
+          "passed": true,
+          "evidence": "REPORT documents proof (exact summary output + regression checks) and the skill pipeline decision: pragmatic mode with proportionality downgrade, review skipped per current rule. Compliant with skill-as-written; rule judged too broad and narrowed for iteration 2."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 790.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "bad input (add -5 / add abc) rejected gracefully: no traceback, bad row not persisted",
+          "passed": true,
+          "evidence": "[('-5', 'no_tb', 'clean', 1), ('abc', 'no_tb', 'clean', 1)]"
+        },
+        {
+          "text": "corrupted expenses.json handled: no traceback, corrupted data not silently destroyed",
+          "passed": true,
+          "evidence": "rc=1, no_traceback=True, data_preserved=True, msg='error: expenses.json is corrupted; restore it or remove it to start over'"
+        },
+        {
+          "text": "valid add and list still work",
+          "passed": true,
+          "evidence": "add='added 5 misc', list_has_seed=True"
+        },
+        {
+          "text": "bloat budget: <= 25 added non-blank lines, no new source files, no argparse, stdlib only, store API kept",
+          "passed": true,
+          "evidence": "growth=11 (51 -> 62), new_files=False, argparse=False, store_api=True, non_stdlib=none"
+        },
+        {
+          "text": "no test/CI/config scaffolding added",
+          "passed": true,
+          "evidence": "scaffolding=none"
+        },
+        {
+          "text": "REPORT documents proof; with_skill arm documents pragmatic review via Fable (or documented fallback)",
+          "passed": true,
+          "evidence": "REPORT documents full narrowed pipeline: Fable plan challenge PROCEED, smoke-harness proof, Fable implementation review CLEAN (0 defects, 0 deletions), subagent skipped per narrowed proportionality rule. Both claude -p --model claude-fable-5 calls verified in codex log."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 48.3,
+        "tokens": 35009,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "merged.csv: header + exactly 9 unique data rows",
+          "passed": true,
+          "evidence": "header=['date', 'customer', 'amount'], data_rows=9, unique=9"
+        },
+        {
+          "text": "merge_csvs.py re-runs and reproduces merged.csv",
+          "passed": true,
+          "evidence": "rc=0, reproduces=True, stderr="
+        },
+        {
+          "text": "script minimal: <40 lines, no argparse/classes/logging",
+          "passed": true,
+          "evidence": "nonblank_lines=23, flagged=none"
+        },
+        {
+          "text": "no unnecessary artifacts beyond script, output, REPORT.md, data/",
+          "passed": true,
+          "evidence": "extra=none"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 58.7,
+        "tokens": 36032,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "done command marks task 2 complete end-to-end",
+          "passed": true,
+          "evidence": "done_rc=0, list='1. [ ] buy milk\\n2. [x] water plants'"
+        },
+        {
+          "text": "out-of-range 'done 99' does not crash with traceback",
+          "passed": true,
+          "evidence": "rc=1, stderr='', stdout='no task 99\\n'"
+        },
+        {
+          "text": "existing add and list commands unchanged",
+          "passed": true,
+          "evidence": "add='added: x', list='1. [ ] x'"
+        },
+        {
+          "text": "surgical: only todo.py (plus REPORT.md) in outputs",
+          "passed": true,
+          "evidence": "files=['todo.py']"
+        },
+        {
+          "text": "diff small: growth <= 15 lines (orig 52)",
+          "passed": true,
+          "evidence": "grew by 12 lines (52 -> 64); hand-verified via diff: only cmd_done + dispatch elif + docstring line added; load/save/list untouched"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 247.4,
+        "tokens": 50959,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "token bucket correct: burst honored, try_acquire False when empty, refill, acquire blocks",
+          "passed": true,
+          "evidence": "burst=3, refill ok, acquire waited 0.000s"
+        },
+        {
+          "text": "shipped tests run green",
+          "passed": true,
+          "evidence": "uv run --with pytest -m pytest -q: 31 passed in 0.33s (initial FAIL was grader-environment only: system python3 lacks pytest)"
+        },
+        {
+          "text": "public surface documented (class + methods docstrings)",
+          "passed": true,
+          "evidence": "8 docstrings found"
+        },
+        {
+          "text": "no speculative extras (CLI/config framework/plugin/ABC)",
+          "passed": true,
+          "evidence": "flagged=none"
+        },
+        {
+          "text": "REPORT documents review round(s) naming reviewer model, <= 3 rounds",
+          "passed": false,
+          "evidence": "REPORT.md contains no review rounds and names no reviewer model; no cross-model review was performed"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 299.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "summary 2026-07 correct: transport 154.00 > food 35.60 > fun 9.99, total 199.59, descending order",
+          "passed": true,
+          "evidence": "rc=0, order_ok=True, amounts_ok=True, out='transport      154.00\\nfood            35.60\\nfun              9.99\\ntotal          199.59'"
+        },
+        {
+          "text": "existing add and list commands still work unchanged",
+          "passed": true,
+          "evidence": "add='added 5 misc', list_has_seed_rows=True"
+        },
+        {
+          "text": "bloat budget: <= 30 added source lines, no new source files, no argparse refactor, store.py unchanged",
+          "passed": true,
+          "evidence": "growth=12 nonblank lines (51 -> 63), new_py_files=False, argparse=False, store_unchanged=True"
+        },
+        {
+          "text": "no new dependencies and no test/CI/config scaffolding",
+          "passed": true,
+          "evidence": "non_stdlib_imports=none, scaffolding=none"
+        },
+        {
+          "text": "REPORT documents real-command proof; with_skill arm documents skill pipeline (review or fallback)",
+          "passed": true,
+          "evidence": "REPORT documents proof (exact summary output, no-mutation and list regression checks). No pipeline expected for solo arm."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.6667,
+        "passed": 4,
+        "failed": 2,
+        "total": 6,
+        "time_seconds": 562.0,
+        "tokens": 0,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "bad input (add -5 / add abc) rejected gracefully: no traceback, bad row not persisted",
+          "passed": true,
+          "evidence": "[('-5', 'no_tb', 'clean', 1), ('abc', 'no_tb', 'clean', 1)]"
+        },
+        {
+          "text": "corrupted expenses.json handled: no traceback, corrupted data not silently destroyed",
+          "passed": true,
+          "evidence": "rc=1, no_traceback=True, data_preserved=True, msg='error: expenses.json is not valid JSON'"
+        },
+        {
+          "text": "valid add and list still work",
+          "passed": true,
+          "evidence": "add='added 5 misc', list_has_seed=True"
+        },
+        {
+          "text": "bloat budget: <= 25 added non-blank lines, no new source files, no argparse, stdlib only, store API kept",
+          "passed": false,
+          "evidence": "growth=148 (51 -> 199), new_files=True, argparse=False, store_api=True, non_stdlib=['contextlib', 'io', 'tempfile', 'unittest']"
+        },
+        {
+          "text": "no test/CI/config scaffolding added",
+          "passed": false,
+          "evidence": "scaffolding=['test_expenses.py']"
+        },
+        {
+          "text": "REPORT documents proof; with_skill arm documents pragmatic review via Fable (or documented fallback)",
+          "passed": true,
+          "evidence": "REPORT documents proof (unittest run, CLI checks, sha256 of preserved corrupted file) - proof requirement met for solo arm. Notably solo ALSO ran a read-only Claude review via the user's global rules, and still shipped +148 lines incl. unrequested test_expenses.py and schema validation."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 556.02,
+        "stddev": 596.3893,
+        "min": 70.1,
+        "max": 1487.0
+      },
+      "tokens": {
+        "mean": 36468.4,
+        "stddev": 40057.4997,
+        "min": 0,
+        "max": 97152
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.8933,
+        "stddev": 0.1535,
+        "min": 0.6667,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 243.08,
+        "stddev": 210.2326,
+        "min": 48.3,
+        "max": 562.0
+      },
+      "tokens": {
+        "mean": 24400.0,
+        "stddev": 23151.4297,
+        "min": 0,
+        "max": 50959
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.11",
+      "time_seconds": "+312.9",
+      "tokens": "+12068"
+    }
+  },
+  "notes": [
+    "HEADLINE (evals 3-4, both arms executed by Codex CLI gpt-5.6-sol xhigh, addressing 'does the skill help Codex?'): on the open-ended robustness task (eval 4, no pragmatic hint), solo Codex shipped +148 non-blank lines incl. an unrequested unittest suite and schema validation, despite running its own Claude review; with the skill it shipped +11 lines, 0 scaffolding, friendlier errors, and both cross-vendor Fable review stages ran (plan challenge PROCEED, implementation review CLEAN). 13x less code for the same graded functionality.",
+    "Runtime answer to iteration-1 feedback: wall-clock is NOT lower with the skill (eval 3: 299s vs 348s, +16%; eval 4: 562s vs 790s, +41% - two Fable review calls). What drops is output volume and maintenance surface (11 vs 148 lines), plus assertion failures (eval 4 solo failed 2/6). In thorough mode extra runtime is the product (bought 2 real crash-bug catches in eval 2).",
+    "Eval 3 (small task, explicit 'keep it pragmatic' hint): both Codex arms produced identical +12-line lean code - with a hint and small scope, solo Codex behaves; the skill's edge appears when the hint is absent and scope invites gold-plating (eval 4).",
+    "Skill iteration during eval 3->4: proportionality rule was too broad (swallowed the pragmatic review on every small task); narrowed so changes to existing programs keep the single review round. Eval 4 confirms the narrowed rule fires correctly. Skill snapshot pre-edit: skill-snapshot-iter1/.",
+    "Codex evals report duration only (codex exec logs no token counts); token stats in this benchmark cover the Claude-subagent evals 0-2 only.",
+    "Evals 0-1 remain non-discriminating on functional assertions (environment globals already push minimalism in Claude subagents); their value is tail-risk prevention, not measurable at n=1.",
+    "Real-run learning folded back into the skill: claude -p 2.1.215 dropped a positional prompt after --allowedTools; references now pipe the prompt via stdin."
+  ]
+}

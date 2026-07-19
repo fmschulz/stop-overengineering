@@ -1,0 +1,38 @@
+[
+  {
+    "date": "2026-06-28",
+    "amount": 31.0,
+    "category": "food",
+    "note": "dinner"
+  },
+  {
+    "date": "2026-07-02",
+    "amount": 12.5,
+    "category": "food",
+    "note": "lunch"
+  },
+  {
+    "date": "2026-07-03",
+    "amount": 54.0,
+    "category": "transport",
+    "note": "monthly pass"
+  },
+  {
+    "date": "2026-07-10",
+    "amount": 23.1,
+    "category": "food",
+    "note": "groceries"
+  },
+  {
+    "date": "2026-07-11",
+    "amount": 9.99,
+    "category": "fun",
+    "note": "movie rental"
+  },
+  {
+    "date": "2026-07-15",
+    "amount": 100.0,
+    "category": "transport",
+    "note": "tires"
+  }
+]
