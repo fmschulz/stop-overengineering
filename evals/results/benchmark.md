@@ -2,7 +2,7 @@
 
 **Model**: evals 0-2 Claude subagents (Fable); evals 3-4 Codex CLI gpt-5.6-sol xhigh (both arms)
 **Date**: 2026-07-19T10:08:15Z
-**Evals**: 0, 1, 2, 3, 4 (3 runs each per configuration)
+**Evals**: 0, 1, 2, 3, 4 (one run per configuration)
 
 ## Summary
 

@@ -1,126 +1,127 @@
 # stop-overengineering
 
-An effort-control skill for coding agents (Claude Code and Codex CLI). It keeps the stages
-of agentic engineering that catch real defects in our evals (planning, iterative review,
-refinement) and puts a hard budget on what each stage may add.
+`stop-overengineering` is an effort-control skill for Claude Code and Codex CLI. It keeps
+planning and review while limiting code, tests, files, checks, and review rounds to what
+the current task needs.
 
-## The problem
-
-Frontier models at high reasoning effort rarely fail by doing too little. Handed an
-open-ended task ("make this handle bad input gracefully"), they spend the surplus on things
-nobody asked for: test suites for a project that has no test runner, schema validation for
-internal data, backup and recovery machinery, abstraction layers with one caller.
-
-In our evals, gpt-5.6-sol at xhigh reasoning showed this pattern most strongly. Given a
-small two-file expense tracker and asked to handle bad input and a corrupted data file, it
-added 148 lines, including an unrequested `unittest` suite and per-field schema validation.
-It did this even after reviewing its own work, because a review that is only asked "is this
-correct?" polishes bloat instead of removing it. The same task, model, and sandbox, run
-through this skill, produced an 11-line change with no scaffolding and a higher score on
-the graded functional checks.
-
-Dropping the reviews would be the wrong fix, because they catch real defects. This skill
-keeps them and adds a deletion mandate: every review must answer two questions with equal
-weight, "what is broken?" and "what should be deleted?". Under that contract, the reviewer
-in our thorough-mode run found two crash bugs by mutation testing.
-
-## Two modes, one pipeline
-
-Both modes run the same pipeline: frame a verifiable goal, plan with explicit non-goals,
-challenge the plan before writing code, execute, review cross-vendor, refine, tidy, report.
-The modes differ in how much each stage may add.
+## Modes
 
 | | Pragmatic (default) | Thorough |
 |---|---|---|
-| For | day-to-day features, scripts, fixes | public APIs, releases, migrations, concurrency |
-| Additions | necessity gate: every function, file, test, and check must justify itself | hardening that pays rent now: trust-boundary validation, edge-case tests, docstrings |
-| Review budget | 1 plan challenge + 1 review round (re-review only verifies fixes) | up to 3 rounds; round 1 fans out correctness / simplicity / security perspectives |
-| Tests | one proof at the highest sensible level | the tests that matter; still no coverage theater |
-| Still banned | everything on the smells list | config systems, plugin points, single-implementation abstractions |
+| Use for | Day-to-day features, scripts, and fixes | Public APIs, releases, migrations, security-sensitive code, and code that is hard to change after release |
+| Additions | Only what the request and its proof require | Validation and tests for current trust boundaries and core edge cases |
+| Review | One plan challenge and one implementation review; a fix-only re-review when needed | Up to three rounds; the first may cover correctness, simplicity, and security separately |
+| Tests | One end-to-end or integration proof when applicable | Tests for core behavior and relevant edge cases |
+| Excludes | New frameworks, speculative options, single-use abstractions, and unrelated cleanup | The same exclusions |
 
-A proportionality rule applies the same standard to the pipeline itself: throwaway one-off
-scripts skip the review committee entirely (sending one is itself overengineering), while
-any change to a program with existing users keeps at least the single review round.
+The user can choose either mode. Otherwise, the skill uses pragmatic mode. It may skip
+subagents and external review for a throwaway script or scratch analysis with no existing
+users. Changes to an existing program keep the implementation review.
 
-## Cross-vendor review wiring
+## Workflow
 
-Self-review shares the blind spots of the code it reviews, and same-vendor review shares
-the model's. Reviews therefore cross vendor lines:
+1. Define a result that can be checked and name the final proof.
+2. Plan the smallest change and list the non-goals.
+3. Ask a cross-vendor reviewer to cut unneeded steps, files, tests, and checks. In
+   thorough mode, also ask it to identify gaps.
+4. Implement the plan with a fixed scope.
+5. Review the diff for defects and additions that the task did not need.
+6. Verify each finding, fix confirmed problems, and rerun the failed check.
+7. Remove scratch files and report the mode, review rounds, omitted work, and proof.
 
-| Host | Execution | Plan challenge + reviews |
+The full rules are in
+[`stop-overengineering/SKILL.md`](stop-overengineering/SKILL.md). Reviewer commands and
+prompts are in
+[`stop-overengineering/references/review-prompts.md`](stop-overengineering/references/review-prompts.md).
+
+## Review setup
+
+The implementation and review use different model vendors:
+
+| Host | Implementation | Plan challenge and implementation review |
 |---|---|---|
-| Claude Code | Fable subagents | Codex CLI: `gpt-5.6-sol`, reasoning `xhigh` |
-| Codex | native (`gpt-5.6-sol` xhigh) | Claude CLI: `claude -p --model claude-fable-5` |
+| Claude Code | Fable subagents | Codex CLI with `gpt-5.6-sol` at `xhigh` reasoning |
+| Codex | Native `gpt-5.6-sol` at `xhigh` reasoning | Claude CLI with `claude-fable-5` |
 
-If the cross-vendor CLI is unavailable, the review falls back to the strongest same-vendor
-model in a fresh context, and the closing report flags the substitution so a downgraded
-review is never silently passed off as the real thing.
+If the other vendor's CLI is unavailable, the skill runs a fresh same-vendor review and
+reports the substitution.
 
-## Measured results
+## Evaluation
 
-Five A/B evals, each run with and without the skill (harness in `evals/`, aggregated
-results in `evals/results/`; raw runs land in the generated workspace). Evals 3 and 4 use
-Codex `gpt-5.6-sol` xhigh as the executing agent in both arms, so the only variable is the
-skill.
+The repository contains five A/B tasks. The tasks cover two small scripts, one shared
+rate limiter, one bounded feature, and one open-ended input-hardening request. Evals 3
+and 4 use Codex `gpt-5.6-sol` at `xhigh` reasoning as the executor in both arms.
 
-| Eval | Task | Without skill | With skill |
-|---|---|---|---|
-| 2 | thorough mode: token-bucket rate limiter | 31-test module, no external review, 4/5 checks | reviewer found 5 findings incl. 2 crash bugs via mutation testing, round 2 CLEAN, 5/5 checks |
-| 3 | small feature, "keep it pragmatic" hint | +12 lines, lean | +12 lines, lean (identical; with a hint and small scope the model behaves) |
-| 4 | open-ended hardening ask, no hint | +148 lines, unrequested test suite, 4/6 checks | +11 lines, 6/6 checks, plan challenge PROCEED + review CLEAN |
+| Task | Without skill | With skill |
+|---|---|---|
+| Shared rate limiter | 4 of 5 checks; 31-test module; no external review | 5 of 5 checks; five correctness findings; second review clean |
+| Bounded summary command | 5 of 5 checks; 12 added nonblank lines | 5 of 5 checks; 12 added nonblank lines |
+| Open-ended input hardening | 4 of 6 checks; 148 added nonblank lines and an unrequested test suite | 6 of 6 checks; 11 added nonblank lines |
 
-Evals 0 and 1 (small pragmatic tasks with Claude subagents) passed all functional checks in
-both arms and are omitted from the table. Aggregate assertion pass rate: 100% with the
-skill, 89.3% without. Two caveats: wall-clock is 16-41% higher with the skill, since review
-calls cost minutes (the savings are in code volume and maintenance surface, not runtime),
-and each eval is a single run. The direction is consistent; the magnitudes will vary.
+All five skill runs passed their assertions. Three of the five runs without the skill
+also passed every assertion. Mean wall time was 556.0 seconds with the skill and 243.1
+seconds without it.
+
+This is a small regression set and does not measure run-to-run variance. See
+[`evals/evals.json`](evals/evals.json) for the tasks and
+[`evals/results/benchmark.md`](evals/results/benchmark.md) for the aggregate results.
 
 ## Install
 
 ### Claude Code
 
-Copy or symlink the skill directory into your skills folder:
+Copy or symlink the skill directory into the Claude Code skills directory:
 
 ```bash
-ln -s /path/to/this/repo/stop-overengineering ~/.claude/skills/stop-overengineering
+mkdir -p ~/.claude/skills
+ln -s /path/to/stop-overengineering/stop-overengineering \
+  ~/.claude/skills/stop-overengineering
 ```
 
-The skill triggers on implementation tasks and on phrases like "pragmatic mode", "thorough
-mode", "keep it simple", or "stop overengineering".
+The skill triggers on implementation work and requests such as "pragmatic mode,"
+"thorough mode," "keep it simple," or "stop overengineering."
 
 ### Codex CLI
 
-With `skills = true` in `~/.codex/config.toml`, Codex discovers any skill in its skills
-directory. Symlink this skill in, or point a shared skills directory at it:
+Copy or symlink the skill directory into the user skills directory:
 
 ```bash
-ln -s /path/to/this/repo/stop-overengineering ~/.codex/skills/stop-overengineering
+mkdir -p ~/.agents/skills
+ln -s /path/to/stop-overengineering/stop-overengineering \
+  ~/.agents/skills/stop-overengineering
 ```
 
-To make usage the default rather than trigger-dependent, add a line to `~/.codex/AGENTS.md`:
+Codex detects skills in this directory without a feature flag. Restart Codex if the skill
+does not appear.
+
+To require the skill for each nontrivial implementation, add this rule to
+`~/.codex/AGENTS.md`:
 
 ```markdown
 Implementation work beyond a trivial one-liner goes through the
 stop-overengineering skill. Default to pragmatic mode.
 ```
 
-One CLI-version note: pipe reviewer prompts to `claude -p` via stdin, because some versions
-drop a positional prompt argument that follows `--allowedTools`. The templates in
-`references/review-prompts.md` already do this.
+The reviewer templates send Claude prompts through standard input because some Claude
+CLI versions do not keep a positional prompt placed after `--allowedTools`.
 
 ## Repository layout
 
-```
-stop-overengineering/        the skill: SKILL.md + references/review-prompts.md
-evals/                       eval definitions, fixtures, grading script, results
-stop-overengineering-workspace/   generated eval runs (disposable, not committed)
+```text
+stop-overengineering/              Skill instructions and reviewer prompts
+evals/                             Task definitions, fixtures, grader, and results
+stop-overengineering-workspace/    Generated eval runs; not committed
 ```
 
 ## Development
 
-The eval harness follows the skill-creator loop: each eval runs the same prompt with and
-without the skill, outputs are graded by scripted assertions (`evals/grade_checks.py`), and
-results aggregate into a benchmark (`evals/results/`). To extend coverage, add an eval to
-`evals/evals.json` with a fixture and assertions, run both arms, and grade. When the skill
-misfires in real use, turn that failure into a regression eval; real failures are better
-signal than synthetic cases.
+Each eval runs the same task with and without the skill. The grader checks mechanical
+assertions; judgment-based assertions require manual review. To add a case:
+
+1. Add the prompt, fixture, and assertions to `evals/evals.json`.
+2. Run both arms.
+3. Run `evals/grade_checks.py` and complete any judgment-based assertions.
+4. Regenerate the files under `evals/results/`.
+
+When the skill produces an unwanted result in real work, add a case that reproduces that
+result.
