@@ -4,9 +4,12 @@ Used at pipeline steps 3 (plan challenge) and 5 (implementation review).
 
 ## Invoking the cross-vendor reviewer
 
-Write the filled-in prompt to a file first (scratchpad or `tasks/`), then pass it with
-command substitution — inlining multi-line prompts in shell arguments breaks on quoting.
-Run from the repo root so the reviewer can read the code. Delete the prompt file afterwards.
+Write the filled-in prompt to a file first (scratchpad or `tasks/`), then feed that file
+on stdin. Inlining multi-line prompts in shell arguments breaks on quoting. Run from the
+repo root so the reviewer can read the code. Delete the prompt file afterwards.
+
+Always start the prompt file with the one-shot preamble below. Without it the reviewer
+runs its own session ritual instead of reviewing.
 
 ### From Claude Code → Codex (gpt-5.6-sol, xhigh)
 
@@ -15,8 +18,13 @@ they handle invocation and result parsing. Raw fallback:
 
 ```bash
 codex exec -s read-only -m gpt-5.6-sol -c model_reasoning_effort="xhigh" \
-  "$(cat /path/to/prompt.txt)"
+  < /path/to/prompt.txt
 ```
+
+Pass the prompt on stdin with no positional argument. `codex exec` appends piped stdin to
+a positional prompt, so a positional form waits on a stdin that a background or non-tty
+caller never closes, and the call hangs until it is killed. A file redirect always reaches
+EOF. If you must use a positional prompt, append `< /dev/null`.
 
 If `-m gpt-5.6-sol` is rejected, drop `-m` and `-c` — `~/.codex/config.toml` already
 defaults to the current top model at xhigh.
@@ -35,6 +43,27 @@ argument when it follows `--allowedTools`. If `claude-fable-5` is unavailable, u
 
 Reviews are read-only by design: the reviewer reports, the host decides and edits. Never
 let the reviewer CLI write to the repo.
+
+## One-shot preamble — prepend to every reviewer prompt
+
+Both CLIs load the user's global agent rules on startup. Those rules describe an
+interactive session: read the handoff, query memory, check which skills apply. A reviewer
+that follows them spends its budget re-deriving project state you already hold, and reads
+skill files instead of the diff. Prepend this block to every prompt file:
+
+```text
+ONE-SHOT REVIEW. This is not an interactive session.
+Do NOT run any session-start ritual: no pickup, no memory query, no handoff, no
+todo/lessons scan, and do NOT read or invoke any skill (nothing under ~/.agents,
+~/.claude, ~/.codex, or ~/controlcenter). Read only the repository files named
+below. Answer in the required format and stop.
+```
+
+Measured on one plan-challenge prompt, Codex `gpt-5.6-sol` at xhigh: without the block, 9
+skill-file reads and a 400 s timeout; with it, 0 skill-file reads, 14.3k tokens, 47.6 s.
+Suppressing the project `AGENTS.md` with `-c project_doc_max_bytes=0` does not help, since
+the ritual rules live in the global `~/.codex/AGENTS.md`, which that setting does not
+govern.
 
 ## Plan-challenge prompt (step 3)
 
