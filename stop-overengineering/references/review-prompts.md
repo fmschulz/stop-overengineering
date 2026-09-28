@@ -11,13 +11,13 @@ repo root so the reviewer can read the code. Delete the prompt file afterwards.
 Always start the prompt file with the one-shot preamble below. Without it the reviewer
 runs its own session ritual instead of reviewing.
 
-### From Claude Code → Codex (gpt-5.6-sol, xhigh)
+### From Claude Code → Codex (default model, xhigh)
 
 Prefer the `claude-codex-review` skill or the `/codex:review` plugin command when available —
 they handle invocation and result parsing. Raw fallback:
 
 ```bash
-codex exec -s read-only -m gpt-5.6-sol -c model_reasoning_effort="xhigh" \
+codex exec -s read-only -c model_reasoning_effort="xhigh" \
   < /path/to/prompt.txt
 ```
 
@@ -26,20 +26,19 @@ a positional prompt, so a positional form waits on a stdin that a background or 
 caller never closes, and the call hangs until it is killed. A file redirect always reaches
 EOF. If you must use a positional prompt, append `< /dev/null`.
 
-If `-m gpt-5.6-sol` is rejected, drop `-m` and `-c` — `~/.codex/config.toml` already
-defaults to the current top model at xhigh.
+`~/.codex/config.toml` supplies the current top model, so the command passes no `-m`.
 
 ### From Codex → Claude (Fable)
 
 ```bash
-claude -p --model claude-fable-5 \
+claude -p --model fable \
   --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*)" \
   < /path/to/prompt.txt
 ```
 
 Pipe the prompt via stdin as shown — some claude CLI versions drop a positional prompt
-argument when it follows `--allowedTools`. If `claude-fable-5` is unavailable, use
-`claude-opus-4-8`.
+argument when it follows `--allowedTools`. If Fable is unavailable or rate-limited, use
+`--model opus`.
 
 Reviews are read-only by design: the reviewer reports, the host decides and edits. Never
 let the reviewer CLI write to the repo.
@@ -85,7 +84,7 @@ For every step, answer: is it necessary to reach the stated goal? Could it merge
 another step? Does its artifact earn its place as a separate file? Are any planned tests
 or checks proving something that matters, or proving that the code is the code?
 
-Respond with at most 40 lines, in exactly this structure:
+Respond in exactly this structure, one line per item:
 CUT: <step/artifact> — <why it isn't needed>          (repeat per item; "none" if none)
 MERGE: <steps> — <combined form>                       (repeat; "none" if none)
 RISK: <the one or two things most likely to go wrong>
@@ -112,7 +111,7 @@ Report only:
    glue, unused parameters. Name each with its location.
 3. TIDINESS — scratch files, orphaned imports, or structure that doesn't match the repo.
 
-At most 40 lines. End with: VERDICT: CLEAN | FINDINGS (n defects, m deletions).
+End with: VERDICT: CLEAN | FINDINGS (n defects, m deletions).
 An empty DEFECTS section with a real DELETE section is a normal, useful outcome.
 ```
 
@@ -138,7 +137,7 @@ deletions carry the same weight as defects.
 security — injection, path traversal, unsafe deserialization, secrets in code, missing
 validation at trust boundaries only.
 
-At most 40 lines. Numbered findings, each with location and concrete scenario.
+Numbered findings, each with location and concrete scenario.
 End with: VERDICT: CLEAN | FINDINGS (n).
 ```
 
@@ -153,7 +152,7 @@ Prior findings and the commits/edits that address them:
 Repo: {REPO_PATH}.
 
 For each: FIXED | NOT FIXED (why, one line) | NEW PROBLEM INTRODUCED (what).
-At most 20 lines. End with: VERDICT: CLEAN | FINDINGS (n).
+End with: VERDICT: CLEAN | FINDINGS (n).
 ```
 
 ## Handling reviewer output

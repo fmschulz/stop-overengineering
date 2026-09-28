@@ -40,8 +40,8 @@ The implementation and review use different model vendors:
 
 | Host | Implementation | Plan challenge and implementation review |
 |---|---|---|
-| Claude Code | Fable subagents | Codex CLI with `gpt-5.6-sol` at `xhigh` reasoning |
-| Codex | Native `gpt-5.6-sol` at `xhigh` reasoning | Claude CLI with `claude-fable-5` |
+| Claude Code | Fable subagents | Codex CLI with its default model (`~/.codex/config.toml`) at `xhigh` reasoning |
+| Codex | Native default model at `xhigh` reasoning | Claude CLI with `--model fable`, the latest Fable |
 
 If the other vendor's CLI is unavailable, the skill runs a fresh same-vendor review and
 reports the substitution.

@@ -5,8 +5,8 @@ description: >-
   cross-reviews, and iteratively refines while aggressively cutting unnecessary code, tests,
   checks, abstractions, files, and token spend. Thorough mode runs iterative multi-reviewer
   refinement up to useful-level robustness without gold-plating. Both modes challenge the plan
-  and review the implementation with a top model from the other vendor (Codex gpt-5.6-sol xhigh
-  from Claude Code, Claude Fable from Codex) and delegate execution to subagents. Use this for
+  and review the implementation with a top model from the other vendor (Codex from Claude Code,
+  Claude Fable from Codex) and delegate execution to subagents. Use this for
   any non-trivial implementation, feature, refactor, or script — especially when the user says
   "pragmatic", "thorough", "keep it simple", "lean", "minimal", "stop overengineering",
   "no unnecessary tests", "don't gold-plate", "production-grade", or "be comprehensive" —
@@ -49,8 +49,8 @@ someone else — keeps the review: skip the subagents if the change is small, bu
 the diff for the single pragmatic review round. In pragmatic mode that review is the only
 external check the work gets, and it is precisely on "obviously simple" changes that
 self-review shares the author's blind spot. What you save by skipping it is one CLI call;
-what it catches rides into a program people keep using. When in doubt, run the full
-pipeline.
+what it catches rides into a program people keep using. When unsure whether work is
+throwaway, treat it as a change to an existing program.
 
 ## Model wiring (host-aware)
 
@@ -60,17 +60,15 @@ the code it reviews.
 
 | Host you are running in | Execution subagents | Plan challenge + reviews |
 |---|---|---|
-| Claude Code | Fable (Agent tool, `model: "fable"`) | Codex CLI: `gpt-5.6-sol`, reasoning `xhigh` |
-| Codex | native (`gpt-5.6-sol` xhigh) | Claude CLI: `claude -p --model claude-fable-5` |
+| Claude Code | Fable (Agent tool, `model: "fable"`) | Codex CLI: default model from `~/.codex/config.toml`, reasoning `xhigh` |
+| Codex | native (default model, xhigh) | Claude CLI: `claude -p --model fable` |
 
 Exact commands and all reviewer prompt templates live in
 `references/review-prompts.md` — read it when you reach steps 3 and 5.
 
-Fallbacks: if `gpt-5.6-sol` is rejected, drop the `-m` flag and use the default model in
-`~/.codex/config.toml` (it is kept current). If the cross-vendor CLI fails twice, review with
-a top in-host model instead (Fable/Opus subagent in Claude Code; a fresh native pass in
-Codex) and flag the substitution in your report — a same-vendor review is worth less, so the
-user should know they got one.
+Fallback: if the cross-vendor CLI fails twice, review with a top in-host model instead
+(Fable/Opus subagent in Claude Code; a fresh native pass in Codex) and flag the substitution
+in your report — a same-vendor review is worth less, so the user should know they got one.
 
 Pragmatic mode saves tokens through fewer, tighter steps and bounded outputs — never by
 downgrading to weaker models. A cheap model that misses the flaw costs more than the strong
@@ -141,7 +139,7 @@ type-checking config that wasn't asked for.
 
 **Round budget.** One plan challenge, one implementation review. A second review round only
 if the first found a real defect — and then it re-checks the fix, not the whole diff.
-Reviewer output capped at ~40 lines (the caps are in the prompt templates). Subagents
+Reviewer output follows the fixed formats in the prompt templates. Subagents
 return conclusions, not file dumps.
 
 **Token discipline.** Delegate broad reading to subagents so the main thread keeps only
